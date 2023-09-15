@@ -3,7 +3,10 @@ from os import path
 import math
 import git
 
+import os
+import time
 import random
+import json
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, ConcatDataset
@@ -12,6 +15,9 @@ import torch.distributed as distributed
 from model.trainer import XMemTrainer
 from dataset.static_dataset import StaticTransformDataset
 from dataset.vos_dataset import VOSDataset
+from dataset.vos_dataset_2 import BinaryMaskVOSDataset
+from dataset.vos_dataset_in_context import InContextVOSDataset
+from dataset.equivalent_weighting_concat_dataset import EquivalentWeightingConcatDataset
 
 from util.logger import TensorboardLogger
 from util.configuration import Configuration
@@ -40,7 +46,7 @@ local_rank = torch.distributed.get_rank()
 world_size = torch.distributed.get_world_size()
 torch.cuda.set_device(local_rank)
 
-print(f'I am rank {local_rank} in this world of size {world_size}!')
+print(f'I am rank {local_rank} in this world of size {world_size} and using GPU {local_rank}!')
 
 network_in_memory = None
 stages = raw_config['stages']
@@ -145,6 +151,115 @@ for si, stage in enumerate(stages_to_perform):
         print(f'Renewed with {max_skip=}')
 
         return construct_loader(train_dataset)
+    
+
+    def get_decathlon_dataset(max_skip, finetune=False):
+        # tasks = [p for p in os.listdir(medical_root) if os.path.isdir(os.path.join(medical_root, p))]
+        medical_root = path.expanduser('../MedicalDecathlon')
+        tasks = [       
+            'Task03_Liver',
+            'Task06_Lung',
+            'Task07_Pancreas', 
+            'Task08_HepaticVessel', 
+            'Task09_Spleen', 
+            'Task10_Colon'
+        ]
+        datasets = []
+        for task in tasks:
+            dataset = BinaryMaskVOSDataset(
+                    path.join(medical_root, task, '480pVolumetricallyExtractedData', 'trimmed-test', 'JPEGImages'), 
+                    path.join(medical_root, task, '480pVolumetricallyExtractedData', 'trimmed-test', 'Annotations'), 
+                    frames_per_datapoint=config['num_frames'],
+                    max_jump=max_skip,
+                    # dataset_info=path.join(medical_root, task, 'dataset.json')
+                )
+            # print(f'{task} dataset size: {len(dataset)}')
+            datasets.append(dataset)
+        train_dataset = ConcatDataset(datasets)
+        return train_dataset
+
+    def renew_decathlon_loader(max_skip, finetune=False):
+        start = time.time()
+        train_dataset = get_decathlon_dataset(max_skip, finetune)
+        print(f"Took {time.time() - start:.2f}s to produce `decathlon` dataset of length {len(train_dataset)}")
+        print(f'Renewed with {max_skip=}')
+        return construct_loader(train_dataset)
+
+    def get_totalseg_dataset(max_skip, finetune=False):
+        basedir = path.expanduser('/workspaces/data/tom/Totalsegmentator_MSD_format')
+        tasks = [p for p in os.listdir(basedir) if os.path.isdir(os.path.join(basedir, p))]
+        datasets = []
+        for task in tasks:
+            dataset = BinaryMaskVOSDataset(
+                path.join(basedir, task, '480pVolumetricallyExtractedData', 'JPEGImages'), 
+                path.join(basedir, task, '480pVolumetricallyExtractedData', 'Annotations'), 
+                frames_per_datapoint=config['num_frames'],
+                max_jump=max_skip,
+                dataset_info=path.join(basedir, task, 'dataset.json')
+            )
+            datasets.append(dataset)
+        train_dataset = ConcatDataset(datasets)
+        return train_dataset
+
+    def get_total_seg_holdout_tasks_dataset(max_skip, finetune=False):
+        basedir = path.expanduser('/workspaces/data/tom/Totalsegmentator_MSD_format')
+        categories = path.expanduser('/workspaces/xmem_training/XMem/util/totalseg_train_test_categories.json')
+        categories = json.loads(open(categories, 'r').read())
+
+        datasets = []
+        for cat in categories:
+            for task in categories[cat]['train']:
+                dataset = BinaryMaskVOSDataset(
+                    path.join(basedir, task, '480pVolumetricallyExtractedData', 'JPEGImages'), 
+                    path.join(basedir, task, '480pVolumetricallyExtractedData', 'Annotations'), 
+                    frames_per_datapoint=config['num_frames'],
+                    max_jump=max_skip,
+                    dataset_info=path.join(basedir, task, 'dataset.json')
+                )
+                datasets.append(dataset)
+        train_dataset = ConcatDataset(datasets)
+        return train_dataset
+    
+    def get_in_context_dataset(max_skip, finetune=False):
+        with open('/workspaces/xmem_training/XMem/dataset/in_context_train_datasets.txt', 'r') as f:
+            dataset_names = [name.strip() for name in f.readlines()]
+        dataset = ConcatDataset([
+            InContextVOSDataset(
+                dataset_name,
+                'clip',
+                frames_per_datapoint=config['num_frames'],
+                draw_exclusively_from_support=False,
+            )
+            for dataset_name in dataset_names
+        ])
+        return dataset
+
+    def renew_totalseg_loader(max_skip, finetune=False):
+        start = time.time()
+        train_dataset = get_totalseg_dataset(max_skip, finetune)
+        print(f"Took {time.time() - start:.2f}s to produce `totalseg` dataset of length {len(train_dataset)}")
+        print(f'Renewed with {max_skip=}')
+        return construct_loader(train_dataset)
+
+    def renew_total_seg_holdout_tasks_loader(max_skip, finetune=False):
+        start = time.time()
+        train_dataset = get_total_seg_holdout_tasks_dataset(max_skip, finetune)
+        print(f"Took {time.time() - start:.2f}s to produce `totalseg` dataset of length {len(train_dataset)}")
+        print(f'Renewed with {max_skip=}')
+        return construct_loader(train_dataset)
+    
+    def renew_combined_medical_loader(max_skip, finetune=False):
+        start = time.time()
+        decathlon_dataset = get_decathlon_dataset(max_skip, finetune)
+        totalseg_dataset = get_totalseg_dataset(max_skip, finetune)
+        train_dataset = EquivalentWeightingConcatDataset([decathlon_dataset, totalseg_dataset])
+        print(f"Took {time.time() - start:.2f}s to produce `combined medical` dataset of length {len(train_dataset)}")
+        print(f'Renewed with {max_skip=}')
+        return construct_loader(train_dataset)
+    
+    def renew_in_context_loader(max_skip, finetune=False):
+        return construct_loader(get_in_context_dataset(max_skip, finetune))
+
 
     """
     Dataset related
@@ -183,11 +298,14 @@ for si, stage in enumerate(stages_to_perform):
         # stage 2 or 3
         increase_skip_fraction = [0.1, 0.3, 0.9, 100]
         # VOS dataset, 480p is used for both datasets
-        yv_root = path.join(path.expanduser(config['yv_root']), 'train_480p')
-        davis_root = path.join(path.expanduser(config['davis_root']), '2017', 'trainval')
+        # yv_root = path.join(path.expanduser(config['yv_root']), 'train_480p')
+        # davis_root = path.join(path.expanduser(config['davis_root']), '2017', 'trainval')
 
-        train_sampler, train_loader = renew_vos_loader(5)
-        renew_loader = renew_vos_loader
+        # train_sampler, train_loader = renew_vos_loader(5)
+        # renew_loader = renew_vos_loader
+
+        renew_loader = renew_in_context_loader
+        train_sampler, train_loader = renew_loader(5)
 
 
     """

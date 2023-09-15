@@ -22,11 +22,12 @@ class VOSDataset(Dataset):
     - Apply random transform to each of the frame
     - The distance between frames is controlled
     """
-    def __init__(self, im_root, gt_root, max_jump, is_bl, subset=None, num_frames=3, max_num_obj=3, finetune=False):
+    def __init__(self, im_root, gt_root, max_jump, is_bl, subset=None, num_frames=3, max_num_obj=3, finetune=False, is_medical=False):
         self.im_root = im_root
         self.gt_root = gt_root
         self.max_jump = max_jump
         self.is_bl = is_bl
+        self.is_medical = is_medical
         self.num_frames = num_frames
         self.max_num_obj = max_num_obj
 
@@ -104,7 +105,7 @@ class VOSDataset(Dataset):
         frames = self.frames[video]
 
         trials = 0
-        while trials < 5:
+        while trials < 500:
             info['frames'] = [] # Appended with actual frames
 
             num_frames = self.num_frames
@@ -174,14 +175,35 @@ class VOSDataset(Dataset):
                         elif max((masks[1]==l).sum(), (masks[2]==l).sum()) < 20*20:
                             good_lables.append(l)
                 labels = np.array(good_lables, dtype=np.uint8)
+
+            # if self.is_medical:
+            #     good_labels = []
+            #     for l in labels:
+            #         pixel_sum = (masks[0]==l).sum()
+            #         if pixel_sum > 10*10:
+            #             good_labels.append(l)
+            #     labels = np.array(good_labels, dtype=np.uint8)
             
             if len(labels) == 0:
                 target_objects = []
                 trials += 1
             else:
+                if trials > 100:
+                    print(f'WARNING: Took {trials} attempts to sample frames with >10*10 object in GT for {vid_im_path}')
                 target_objects = labels.tolist()
+                # TODO: What happens if they dont find enough good labels in 5 trials?
                 break
 
+
+
+
+
+
+
+
+
+
+        # end of trials
         if len(target_objects) > self.max_num_obj:
             target_objects = np.random.choice(target_objects, size=self.max_num_obj, replace=False)
 

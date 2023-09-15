@@ -17,7 +17,7 @@ class Configuration():
         parser.add_argument('--bl_root', help='Blender training data root', default='../BL30K')
         parser.add_argument('--yv_root', help='YouTubeVOS data root', default='../YouTube')
         parser.add_argument('--davis_root', help='DAVIS data root', default='../DAVIS')
-        parser.add_argument('--num_workers', help='Total number of dataloader workers across all GPUs processes', type=int, default=16)
+        parser.add_argument('--num_workers', help='Total number of dataloader workers across all GPUs processes', type=int, default=1)
 
         parser.add_argument('--key_dim', default=64, type=int)
         parser.add_argument('--value_dim', default=512, type=int)
@@ -74,7 +74,7 @@ class Configuration():
         parser.add_argument('--s3_steps', nargs="*", default=[80000], type=int)
         parser.add_argument('--s3_lr', help='Initial learning rate', default=1e-5, type=float)
         parser.add_argument('--s3_num_ref_frames', default=3, type=int)
-        parser.add_argument('--s3_num_frames', default=8, type=int)
+        parser.add_argument('--s3_num_frames', default=16, type=int)
         parser.add_argument('--s3_start_warm', default=20000, type=int)
         parser.add_argument('--s3_end_warm', default=70000, type=int)
 
@@ -86,15 +86,15 @@ class Configuration():
         parser.add_argument('--load_checkpoint', help='Path to the checkpoint file, including network, optimizer and such')
 
         # Logging information
-        parser.add_argument('--log_text_interval', default=100, type=int)
-        parser.add_argument('--log_image_interval', default=1000, type=int)
-        parser.add_argument('--save_network_interval', default=25000, type=int)
-        parser.add_argument('--save_checkpoint_interval', default=50000, type=int)
+        parser.add_argument('--log_text_interval', default=10, type=int)
+        parser.add_argument('--log_image_interval', default=250, type=int)
+        parser.add_argument('--save_network_interval', default=250, type=int)
+        parser.add_argument('--save_checkpoint_interval', default=5000, type=int)
         parser.add_argument('--exp_id', help='Experiment UNIQUE id, use NULL to disable logging to tensorboard', default='NULL')
         parser.add_argument('--debug', help='Debug mode which logs information more often', action='store_true')
 
         # # Multiprocessing parameters, not set by users
-        # parser.add_argument('--local_rank', default=0, type=int, help='Local rank of this process')
+        parser.add_argument('--local_rank', default=0, type=int, help='Local rank of this process')
 
         if unknown_arg_ok:
             args, _ = parser.parse_known_args()

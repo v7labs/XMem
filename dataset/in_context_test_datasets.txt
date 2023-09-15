@@ -1,0 +1,13 @@
+ade-airplane-all
+ade-bulletin_board-all
+ade-desk-all
+ade-pillow-all
+ade-armchair-all
+cityscapes-rider-all
+cityscapes-car-all
+cityscapes-bicycle-all
+coco-banana-all
+coco-keyboard-all
+coco-baseball_bat-all
+coco-oven-all
+coco-stone-all
