@@ -1,0 +1,142 @@
+{
+    "organs": {
+        "train": [
+            "Task_kidney_left",
+            "Task_urinary_bladder",
+            "Task_colon",
+            "Task_kidney_right",
+            "Task_pancreas",
+            "Task_brain",
+            "Task_stomach",
+            "Task_spleen",
+            "Task_adrenal_gland_right",
+            "Task_gallbladder"
+        ],
+        "test": [
+            "Task_adrenal_gland_left",
+            "Task_liver",
+            "Task_small_bowel",
+            "Task_trachea",
+            "Task_duodenum",
+            "Task_face"
+        ]
+    },
+    "vessels": {
+        "train": [
+            "Task_iliac_vena_left",
+            "Task_portal_vein_and_splenic_vein",
+            "Task_iliac_artery_right",
+            "Task_pulmonary_artery",
+            "Task_iliac_vena_right",
+            "Task_iliac_artery_left"
+        ],
+        "test": [
+            "Task_aorta",
+            "Task_esophagus",
+            "Task_inferior_vena_cava"
+        ]
+    },
+    "bones": {
+        "train": [
+            "Task_vertebrae_T10",
+            "Task_femur_right",
+            "Task_rib_left_4",
+            "Task_vertebrae_T7",
+            "Task_rib_left_9",
+            "Task_vertebrae_T8",
+            "Task_vertebrae_C7",
+            "Task_rib_left_11",
+            "Task_vertebrae_T1",
+            "Task_rib_right_10",
+            "Task_rib_right_9",
+            "Task_rib_left_5",
+            "Task_vertebrae_T5",
+            "Task_rib_left_6",
+            "Task_scapula_left",
+            "Task_vertebrae_L3",
+            "Task_femur_left",
+            "Task_rib_left_8",
+            "Task_sacrum",
+            "Task_rib_left_10",
+            "Task_vertebrae_C4",
+            "Task_rib_right_1",
+            "Task_rib_left_12",
+            "Task_vertebrae_L1",
+            "Task_vertebrae_T11",
+            "Task_vertebrae_T4",
+            "Task_vertebrae_C5",
+            "Task_rib_left_2",
+            "Task_rib_right_6",
+            "Task_rib_left_7",
+            "Task_vertebrae_L5",
+            "Task_rib_right_7",
+            "Task_rib_left_1",
+            "Task_rib_right_5",
+            "Task_vertebrae_C3",
+            "Task_rib_left_3"
+        ],
+        "test": [
+            "Task_scapula_right",
+            "Task_clavicula_left",
+            "Task_clavicula_right",
+            "Task_vertebrae_C1",
+            "Task_vertebrae_C2",
+            "Task_vertebrae_C6",
+            "Task_vertebrae_L2",
+            "Task_vertebrae_L4",
+            "Task_vertebrae_T2",
+            "Task_vertebrae_T3",
+            "Task_vertebrae_T6",
+            "Task_vertebrae_T9",
+            "Task_vertebrae_T12",
+            "Task_rib_right_2",
+            "Task_rib_right_3",
+            "Task_rib_right_4",
+            "Task_rib_right_8",
+            "Task_rib_right_11",
+            "Task_rib_right_12"
+        ]
+    },
+    "muscles": {
+        "train": [
+            "Task_iliopsoas_left",
+            "Task_gluteus_minimus_left",
+            "Task_autochthon_right",
+            "Task_gluteus_medius_right",
+            "Task_hip_left",
+            "Task_humerus_right",
+            "Task_hip_right",
+            "Task_autochthon_left",
+            "Task_gluteus_maximus_right"
+        ],
+        "test": [
+            "Task_gluteus_maximus_left",
+            "Task_gluteus_medius_left",
+            "Task_gluteus_minimus_right",
+            "Task_humerus_left",
+            "Task_iliopsoas_right"
+        ]
+    },
+    "heart": {
+        "train": [
+            "Task_heart_ventricle_right",
+            "Task_heart_atrium_right",
+            "Task_heart_atrium_left"
+        ],
+        "test": [
+            "Task_heart_myocardium",
+            "Task_heart_ventricle_left"
+        ]
+    },
+    "lungs": {
+        "train": [
+            "Task_lung_lower_lobe_right",
+            "Task_lung_upper_lobe_right",
+            "Task_lung_lower_lobe_left"
+        ],
+        "test": [
+            "Task_lung_middle_lobe_right",
+            "Task_lung_upper_lobe_left"
+        ]
+    }
+}
